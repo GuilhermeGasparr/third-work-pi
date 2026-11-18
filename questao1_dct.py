@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 
 PASTA = os.path.dirname(os.path.abspath(__file__))
 IMAGENS = {
-    "ia": os.path.join(PASTA, "imagens", "imagem_ia_cinematografica.jpg"),
-    "ilustracao": os.path.join(PASTA, "imagens", "imagem_ilustracao_digital.jpg"),
+    "ia": os.path.join(PASTA, "assets", "imagem_ia_cinematografica.jpg"),
+    "ilustracao": os.path.join(PASTA, "assets", "imagem_ilustracao_digital.jpg"),
 }
 SAIDA = os.path.join(PASTA, "resultados")
 os.makedirs(SAIDA, exist_ok=True)

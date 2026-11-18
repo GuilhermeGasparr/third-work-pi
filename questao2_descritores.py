@@ -13,8 +13,8 @@ SAIDA = os.path.join(PASTA, "resultados")
 os.makedirs(SAIDA, exist_ok=True)
 
 IMAGENS = {
-    "ia": ("Imagem 1 (IA, cinematográfica)", os.path.join(PASTA, "imagens", "imagem_ia_cinematografica.jpg")),
-    "ilustracao": ("Imagem 2 (ilustração digital)", os.path.join(PASTA, "imagens", "imagem_ilustracao_digital.jpg")),
+    "ia": ("Imagem 1 (IA, cinematográfica)", os.path.join(PASTA, "assets", "imagem_ia_cinematografica.jpg")),
+    "ilustracao": ("Imagem 2 (ilustração digital)", os.path.join(PASTA, "assets", "imagem_ilustracao_digital.jpg")),
 }
 
 REGIOES = {
