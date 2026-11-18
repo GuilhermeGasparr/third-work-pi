@@ -3,7 +3,7 @@ import json
 import os
 
 import numpy as np
-from PIL import Image  # somente load/save
+from PIL import Image
 import matplotlib
 
 matplotlib.use("Agg")
@@ -17,10 +17,8 @@ IMAGENS = {
 SAIDA = os.path.join(PASTA, "resultados")
 os.makedirs(SAIDA, exist_ok=True)
 
-N = 8  # tamanho do bloco
+N = 8  
 
-# Matriz de quantização de luminância do JPEG (Anexo K da norma) -
-# usada como base da matriz "simplificada" (escalonada por um fator de qualidade).
 Q_BASE = np.array([
     [16, 11, 10, 16, 24, 40, 51, 61],
     [12, 12, 14, 19, 26, 58, 60, 55],
@@ -43,7 +41,6 @@ def carregar_rgb(caminho):
 
 
 def salvar_cinza(matriz, caminho):
-    """Salva matriz 2D (0..255) como PNG em tons de cinza."""
     Image.fromarray(np.clip(np.round(matriz), 0, 255).astype(np.uint8), mode="L").save(caminho)
 
 
@@ -51,7 +48,6 @@ def salvar_cinza(matriz, caminho):
 # Pré-processamento manual
 # ----------------------------------------------------------------------------
 def rgb_para_cinza(rgb):
-    """Luminância ITU-R BT.601: Y = 0.299 R + 0.587 G + 0.114 B."""
     return 0.299 * rgb[..., 0] + 0.587 * rgb[..., 1] + 0.114 * rgb[..., 2]
 
 
@@ -63,28 +59,15 @@ def preencher_multiplo(img, n=N):
 
 
 def dividir_blocos(img, n=N):
-    """(H, W) -> (nBlocosLin, nBlocosCol, n, n)."""
     h, w = img.shape
     return img.reshape(h // n, n, w // n, n).swapaxes(1, 2)
 
 
 def juntar_blocos(blocos):
-    """(nBL, nBC, n, n) -> (H, W)."""
     nbl, nbc, n, _ = blocos.shape
     return blocos.swapaxes(1, 2).reshape(nbl * n, nbc * n)
 
-
-# ----------------------------------------------------------------------------
-# DCT 2D manual
-# ----------------------------------------------------------------------------
 def matriz_dct(n=N):
-    """
-    Matriz ortonormal C da DCT-II 1D:
-        C[u, x] = alpha(u) * cos((2x + 1) * u * pi / (2n))
-        alpha(0) = sqrt(1/n),  alpha(u>0) = sqrt(2/n)
-    A DCT 2D separável de um bloco B é  F = C . B . C^T
-    e a inversa é                       B = C^T . F . C
-    """
     C = np.zeros((n, n))
     for u in range(n):
         alpha = np.sqrt(1.0 / n) if u == 0 else np.sqrt(2.0 / n)
@@ -97,7 +80,7 @@ C = matriz_dct()
 
 
 def dct2_bloco_ingenua(bloco):
-    """Fórmula direta da DCT 2D (4 laços). Usada só para validar a versão rápida."""
+    """Fórmula direta da DCT 2D (4 laços)."""
     n = bloco.shape[0]
     F = np.zeros((n, n))
     for u in range(n):
@@ -115,12 +98,10 @@ def dct2_bloco_ingenua(bloco):
 
 
 def dct2_blocos(blocos):
-    """DCT 2D de todos os blocos ao mesmo tempo: F = C B C^T."""
     return C @ blocos @ C.T
 
 
 def idct2_blocos(coefs):
-    """IDCT 2D de todos os blocos: B = C^T F C."""
     return C.T @ coefs @ C
 
 
@@ -128,7 +109,7 @@ def idct2_blocos(coefs):
 # Quantização
 # ----------------------------------------------------------------------------
 def matriz_quantizacao(qualidade):
-    """Escalona Q_BASE pelo fator de qualidade (1..100), como no JPEG."""
+    """Escalona Q_BASE pelo fator de qualidade (1..100)"""
     qualidade = max(1, min(100, qualidade))
     fator = 5000.0 / qualidade if qualidade < 50 else 200.0 - 2.0 * qualidade
     Q = np.floor((Q_BASE * fator + 50.0) / 100.0)
@@ -142,10 +123,6 @@ def quantizar(coefs, Q):
 def desquantizar(q, Q):
     return q * Q
 
-
-# ----------------------------------------------------------------------------
-# Métricas manuais
-# ----------------------------------------------------------------------------
 def mse(a, b):
     return float(np.mean((a - b) ** 2))
 
@@ -162,7 +139,7 @@ def medida_blocagem(img, n=N):
     Valores > 1 indicam artefato de bloco visível (descontinuidade nas bordas).
     """
     h, w = img.shape
-    dh = np.abs(np.diff(img, axis=1))  # entre colunas j e j+1
+    dh = np.abs(np.diff(img, axis=1))
     dv = np.abs(np.diff(img, axis=0))
     colunas = np.arange(dh.shape[1])
     linhas = np.arange(dv.shape[0])
@@ -180,12 +157,9 @@ def entropia_coeficientes(q):
     return float(-(p * np.log2(p)).sum())
 
 
-# ----------------------------------------------------------------------------
-# Pipeline completo
-# ----------------------------------------------------------------------------
 def comprimir_reconstruir(cinza, qualidade):
     h, w = cinza.shape
-    base = preencher_multiplo(cinza) - 128.0          # deslocamento de nível
+    base = preencher_multiplo(cinza) - 128.0         
     blocos = dividir_blocos(base)
     coefs = dct2_blocos(blocos)
     Q = matriz_quantizacao(qualidade)
@@ -197,7 +171,7 @@ def comprimir_reconstruir(cinza, qualidade):
 
 
 def montar_painel(imagens, separador=8):
-    """Concatena imagens 2D lado a lado (com faixa branca) - só NumPy."""
+    """Concatena imagens 2D lado a lado (com faixa branca)"""
     h = max(i.shape[0] for i in imagens)
     colunas = []
     for k, im in enumerate(imagens):

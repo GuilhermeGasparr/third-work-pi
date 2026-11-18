@@ -2,7 +2,7 @@ import json
 import os
 
 import numpy as np
-from PIL import Image  # somente load/save
+from PIL import Image 
 import matplotlib
 
 matplotlib.use("Agg")
@@ -17,7 +17,6 @@ IMAGENS = {
     "ilustracao": ("Imagem 2 (ilustração digital)", os.path.join(PASTA, "imagens", "imagem_ilustracao_digital.jpg")),
 }
 
-# Regiões de interesse: (nome, (y0, y1, x0, x1))
 REGIOES = {
     "ia": [
         ("Fundo desfocado (muro)", (0, 300, 0, 450)),
@@ -32,19 +31,11 @@ REGIOES = {
     ],
 }
 
-
-# ----------------------------------------------------------------------------
-# Entrada / saída
-# ----------------------------------------------------------------------------
 def carregar_cinza(caminho):
     rgb = np.array(Image.open(caminho).convert("RGB"), dtype=np.float64)
     cinza = 0.299 * rgb[..., 0] + 0.587 * rgb[..., 1] + 0.114 * rgb[..., 2]
     return np.clip(np.round(cinza), 0, 255)
 
-
-# ----------------------------------------------------------------------------
-# Descritores estatísticos (todos manuais)
-# ----------------------------------------------------------------------------
 def media(x):
     return float(x.sum() / x.size)
 
